@@ -1,0 +1,25 @@
+node_modules
+# Node
+node_modules/
+npm-debug.log
+
+# Next.js
+.next/
+out/
+
+# Env
+.env
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma
+prisma/dev.db
+
+# Docker
+*.pid

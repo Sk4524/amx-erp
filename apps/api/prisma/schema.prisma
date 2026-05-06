@@ -1,0 +1,87 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+
+  users        User[]
+  employees    Employee[]
+  accounts     Account[]
+  transactions Transaction[]
+  inventory    InventoryItem[]
+}
+
+model User {
+  id       String @id @default(uuid())
+  email    String @unique
+  password String
+  role     Role
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model Employee {
+  id       String @id @default(uuid())
+  name     String
+  position String
+  salary   Float
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  transactions Transaction[] // ✅ ADD THIS
+}
+
+model Account {
+  id       String @id @default(uuid())
+  name     String
+  type     String
+  balance  Float  @default(0)
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  transactions Transaction[] // ✅ ADD THIS
+}
+
+model Transaction {
+  id         String  @id @default(uuid())
+  amount     Float
+  type       String
+  accountId  String
+  tenantId   String
+  employeeId String? // optional
+
+  account  Account   @relation(fields: [accountId], references: [id])
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+  employee Employee? @relation(fields: [employeeId], references: [id])
+
+  createdAt DateTime @default(now())
+}
+
+model InventoryItem {
+  id       String @id @default(uuid())
+  name     String
+  quantity Int
+  price    Float
+  tenantId String
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  MANAGER
+  USER
+}
