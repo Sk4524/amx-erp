@@ -5,10 +5,15 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 
 export default function EmployeesPage() {
+
   const [employees, setEmployees] = useState([]);
+
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [salary, setSalary] = useState("");
+
+  // 🔥 NEW STATE FOR EDIT
+  const [editingId, setEditingId] = useState("");
 
   const token =
     typeof window !== "undefined"
@@ -19,65 +24,121 @@ export default function EmployeesPage() {
   const fetchEmployees = () => {
     axios
       .get("http://localhost:3000/employee", {
-        headers: { Authorization: `Bearer ${token}` },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       })
       .then((res) => setEmployees(res.data))
       .catch((err) => console.log(err));
   };
 
   useEffect(() => {
-    if (token) fetchEmployees();
+    if (token) {
+      fetchEmployees();
+    }
   }, []);
 
   // ADD EMPLOYEE
   const addEmployee = async () => {
-    await axios.post(
-      "http://localhost:3000/employee",
-      {
-        name,
-        position,
-        salary: Number(salary),
-      },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      }
-    );
+    try {
 
-    setName("");
-    setPosition("");
-    setSalary("");
+      await axios.post(
+        "http://localhost:3000/employee",
+        {
+          name,
+          position,
+          salary: Number(salary),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    fetchEmployees();
+      // CLEAR FORM
+      setName("");
+      setPosition("");
+      setSalary("");
+
+      fetchEmployees();
+
+    } catch (err) {
+      console.log(err);
+      alert("Add Employee Failed ❌");
+    }
   };
 
-  // DELETE EMPLOYEE (frontend only for now)
- const deleteEmployee = async (id: string) => {
-  try {
-    await axios.delete(`http://localhost:3000/employee/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    });
+  // DELETE EMPLOYEE
+  const deleteEmployee = async (id: string) => {
+    try {
 
-    fetchEmployees();
+      await axios.delete(`http://localhost:3000/employee/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
-  } catch (err) {
-    console.log(err);
-    alert("Delete failed ❌");
-  }
-};
+      fetchEmployees();
+
+    } catch (err) {
+      console.log(err);
+      alert("Delete Failed ❌");
+    }
+  };
+
+  // 🔥 UPDATE EMPLOYEE
+  const updateEmployee = async () => {
+    try {
+
+      await axios.put(
+        `http://localhost:3000/employee/${editingId}`,
+        {
+          name,
+          position,
+          salary: Number(salary),
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // RESET FORM
+      setEditingId("");
+      setName("");
+      setPosition("");
+      setSalary("");
+
+      fetchEmployees();
+
+    } catch (err) {
+      console.log(err);
+      alert("Update Failed ❌");
+    }
+  };
+
   return (
     <div className="flex">
+
       <Sidebar />
 
-      <div className="p-10 w-full bg-gray-100 min-h-screen text-black">
-        <h1 className="text-3xl font-bold mb-6">Employees</h1>
+      <div className="p-10 w-full ml-72 bg-gray-100 min-h-screen text-black">
 
-        {/* ADD FORM */}
+        <h1 className="text-3xl font-bold mb-6">
+          Employees
+        </h1>
+
+        {/* FORM */}
         <div className="bg-white p-5 rounded-xl shadow mb-6">
-          <h2 className="text-lg font-semibold mb-4">Add Employee</h2>
+
+          <h2 className="text-lg font-semibold mb-4">
+            {editingId ? "Edit Employee" : "Add Employee"}
+          </h2>
 
           <div className="grid grid-cols-3 gap-4">
+
             <input
               placeholder="Name"
               className="p-2 border rounded"
@@ -98,39 +159,73 @@ export default function EmployeesPage() {
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
             />
+
           </div>
 
           <button
-            onClick={addEmployee}
-            className="mt-4 bg-blue-600 text-white px-5 py-2 rounded"
+            onClick={editingId ? updateEmployee : addEmployee}
+            className="mt-4 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
           >
-            Add Employee
+            {editingId ? "Update Employee" : "Add Employee"}
           </button>
+
         </div>
 
-        {/* LIST */}
+        {/* EMPLOYEE LIST */}
         <div className="bg-white p-5 rounded-xl shadow">
-          <h2 className="text-lg font-semibold mb-4">Employee List</h2>
 
-          {employees.map((emp: any) => (
-            <div
-              key={emp.id}
-              className="flex justify-between border-b py-2"
-            >
-              <div>
-                <b>{emp.name}</b> - {emp.position} (₹{emp.salary})
-              </div>
+          <h2 className="text-lg font-semibold mb-4">
+            Employee List
+          </h2>
 
-              <button
-                onClick={() => deleteEmployee(emp.id)}
-                className="text-red-500"
+          {employees.length === 0 ? (
+            <p className="text-gray-500">
+              No employees found
+            </p>
+          ) : (
+            employees.map((emp: any) => (
+              <div
+                key={emp.id}
+                className="flex justify-between items-center border-b py-3"
               >
-                Delete
-              </button>
-            </div>
-          ))}
+
+                <div>
+                  <b>{emp.name}</b> - {emp.position} (₹{emp.salary})
+                </div>
+
+                <div className="flex gap-4">
+
+                  {/* EDIT BUTTON */}
+                  <button
+                    onClick={() => {
+                      setEditingId(emp.id);
+                      setName(emp.name);
+                      setPosition(emp.position);
+                      setSalary(emp.salary.toString());
+                    }}
+                    className="text-blue-500 hover:text-blue-700"
+                  >
+                    Edit
+                  </button>
+
+                  {/* DELETE BUTTON */}
+                  <button
+                    onClick={() => deleteEmployee(emp.id)}
+                    className="text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+
+                </div>
+
+              </div>
+            ))
+          )}
+
         </div>
+
       </div>
+
     </div>
   );
 }

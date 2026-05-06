@@ -4,9 +4,10 @@ import {
   Post,
   Body,
   Req,
-  UseGuards,
   Delete,
-  Param
+  Param,
+  Put,
+  UseGuards
 } from "@nestjs/common";
 
 import { EmployeeService } from "./employee.service";
@@ -31,4 +32,13 @@ export class EmployeeController {
   delete(@Param("id") id: string, @Req() req: any) {
     return this.service.delete(id, req.user.tenantId);
   }
+  
+  @Put(":id")
+update(
+  @Param("id") id: string,
+  @Body() body: any,
+  @Req() req: any
+) {
+  return this.service.update(id, body, req.user.tenantId);
+ }
 }

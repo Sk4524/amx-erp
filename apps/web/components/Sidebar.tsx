@@ -7,66 +7,100 @@ import {
   DollarSign,
   LogOut
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+
+import { usePathname, useRouter } from "next/navigation";
+import clsx from "clsx";
 
 export default function Sidebar() {
   const router = useRouter();
+  const pathname = usePathname();
+
+  const menuItems = [
+    {
+      label: "Dashboard",
+      icon: LayoutDashboard,
+      path: "/"
+    },
+    {
+      label: "Employees",
+      icon: Users,
+      path: "/employees"
+    },
+    {
+      label: "Inventory",
+      icon: Package,
+      path: "/inventory"
+    },
+    {
+      label: "Finance",
+      icon: DollarSign,
+      path: "/finance"
+    }
+  ];
 
   return (
-    <div className="w-64 h-screen bg-[#0f172a] text-white p-5 flex flex-col justify-between">
+    <div className=" fixed left-0 top-0 w-72 h-screen bg-[#0b1120] text-white flex flex-col justify-between shadow-2xl">
 
       {/* TOP */}
       <div>
-        <h2 className="text-2xl font-bold mb-8 tracking-wide">
-          AMX ERP
-        </h2>
 
-        <div className="space-y-5 text-gray-300">
+        {/* LOGO */}
+        <div className="px-8 py-7 border-b border-gray-800">
 
-          {/* Dashboard */}
-          <div
-            className="flex items-center gap-3 cursor-pointer hover:text-white transition"
-            onClick={() => router.push("/")}
-          >
-            <LayoutDashboard size={20} /> Dashboard
-          </div>
+          <h1 className="text-3xl font-bold tracking-wide text-blue-500">
+            AMX ERP
+          </h1>
 
-          {/* Employees */}
-          <div
-            className="flex items-center gap-3 cursor-pointer hover:text-white transition"
-            onClick={() => router.push("/employees")}
-          >
-            <Users size={20} /> Employees
-          </div>
+          <p className="text-sm text-gray-400 mt-1">
+            Enterprise Suite
+          </p>
 
-          {/* Inventory */}
-          <div
-            className="flex items-center gap-3 cursor-pointer hover:text-white transition"
-          >
-            <Package size={20} /> Inventory
-          </div>
+        </div>
 
-          {/* Finance */}
-          <div
-            className="flex items-center gap-3 cursor-pointer hover:text-white transition"
-          >
-            <DollarSign size={20} /> Finance
-          </div>
+        {/* MENU */}
+        <div className="px-4 py-6 space-y-3">
+
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+
+            return (
+              <div
+                key={item.label}
+                onClick={() => router.push(item.path)}
+                className={clsx(
+                  "flex items-center gap-4 px-5 py-3 rounded-xl cursor-pointer transition-all duration-200",
+                  pathname === item.path
+                    ? "bg-blue-600 text-white shadow-lg"
+                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                )}
+              >
+                <Icon size={20} />
+
+                <span className="font-medium">
+                  {item.label}
+                </span>
+              </div>
+            );
+          })}
 
         </div>
       </div>
 
-      {/* LOGOUT */}
-      <div
-        className="flex items-center gap-3 cursor-pointer text-red-400 hover:text-red-300 transition"
-        onClick={() => {
-          localStorage.removeItem("token");
-          router.push("/login");
-        }}
-      >
-        <LogOut size={20} /> Logout
-      </div>
+      {/* FOOTER */}
+      <div className="p-5 border-t border-gray-800">
 
+        <div
+          className="flex items-center gap-4 px-5 py-3 rounded-xl cursor-pointer text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
+          onClick={() => {
+            localStorage.removeItem("token");
+            router.push("/login");
+          }}
+        >
+          <LogOut size={20} />
+          <span className="font-medium">Logout</span>
+        </div>
+
+      </div>
     </div>
   );
 }

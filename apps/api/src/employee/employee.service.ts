@@ -22,4 +22,14 @@ export class EmployeeService {
       where: { id }
     });
   }
+
+async update(id: string, data: any, tenantId: string) {
+  return this.prisma.employee.update({
+    where: {
+      id: id
+    },
+    data
+  });
+
+}
 }
