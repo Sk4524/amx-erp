@@ -12,8 +12,12 @@ import {
 
 import { EmployeeService } from "./employee.service";
 import { JwtAuthGuard } from "../auth/jwt.guard";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+import { CreateEmployeeDto } from "./dto/create-employee.dto";
 
 @UseGuards(JwtAuthGuard)
+@ApiTags("Employees")
+@ApiBearerAuth()
 @Controller("employee")
 export class EmployeeController {
   constructor(private service: EmployeeService) {}
@@ -24,7 +28,7 @@ export class EmployeeController {
   }
 
   @Post()
-  create(@Body() body: any, @Req() req: any) {
+  create(@Body() body: CreateEmployeeDto, @Req() req: any) {
     return this.service.create(body, req.user.tenantId);
   }
 
