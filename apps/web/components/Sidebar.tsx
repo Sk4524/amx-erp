@@ -5,41 +5,68 @@ import {
   Users,
   Package,
   DollarSign,
-  LogOut
+  LogOut,
+  ShieldCheck,
 } from "lucide-react";
 
-import { usePathname, useRouter } from "next/navigation";
+import {
+  usePathname,
+  useRouter
+} from "next/navigation";
+
 import clsx from "clsx";
 
+import { useEffect, useState } from "react";
+
 export default function Sidebar() {
+
   const router = useRouter();
+
   const pathname = usePathname();
+
+  const [role, setRole] = useState("");
+
+  // LOAD ROLE
+  useEffect(() => {
+
+    const savedRole =
+      localStorage.getItem("role");
+
+    if (savedRole) {
+      setRole(savedRole);
+    }
+
+  }, []);
 
   const menuItems = [
     {
       label: "Dashboard",
       icon: LayoutDashboard,
-      path: "/"
+      path: "/",
     },
+
     {
       label: "Employees",
       icon: Users,
-      path: "/employees"
+      path: "/employees",
     },
+
     {
       label: "Inventory",
       icon: Package,
-      path: "/inventory"
+      path: "/inventory",
     },
+
     {
       label: "Finance",
       icon: DollarSign,
-      path: "/finance"
-    }
+      path: "/finance",
+    },
   ];
 
   return (
-    <div className=" fixed left-0 top-0 w-72 h-screen bg-[#0b1120] text-white flex flex-col justify-between shadow-2xl">
+
+    <div className="fixed left-0 top-0 w-72 h-screen bg-[#0b1120] text-white flex flex-col justify-between shadow-2xl">
 
       {/* TOP */}
       <div>
@@ -57,33 +84,62 @@ export default function Sidebar() {
 
         </div>
 
+        {/* USER ROLE CARD */}
+        <div className="mx-4 mt-5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-2xl p-4 shadow-lg">
+
+          <div className="flex items-center gap-3">
+
+            <ShieldCheck size={5} />
+
+            <div>
+
+              <p className="text-xs text-blue-100">
+                Logged in as
+              </p>
+
+              <h3 className="font-bold text-lg">
+                {role || "USER"}
+              </h3>
+
+            </div>
+
+          </div>
+
+        </div>
+
         {/* MENU */}
         <div className="px-4 py-6 space-y-3">
 
           {menuItems.map((item) => {
+
             const Icon = item.icon;
 
             return (
+
               <div
                 key={item.label}
                 onClick={() => router.push(item.path)}
                 className={clsx(
                   "flex items-center gap-4 px-5 py-3 rounded-xl cursor-pointer transition-all duration-200",
+
                   pathname === item.path
                     ? "bg-blue-600 text-white shadow-lg"
                     : "text-gray-300 hover:bg-gray-800 hover:text-white"
                 )}
               >
+
                 <Icon size={20} />
 
                 <span className="font-medium">
                   {item.label}
                 </span>
+
               </div>
             );
           })}
 
         </div>
+
       </div>
 
       {/* FOOTER */}
@@ -92,15 +148,23 @@ export default function Sidebar() {
         <div
           className="flex items-center gap-4 px-5 py-3 rounded-xl cursor-pointer text-red-400 hover:bg-red-500 hover:text-white transition-all duration-200"
           onClick={() => {
-            localStorage.removeItem("token");
+
+            localStorage.clear();
+
             router.push("/login");
           }}
         >
+
           <LogOut size={20} />
-          <span className="font-medium">Logout</span>
+
+          <span className="font-medium">
+            Logout
+          </span>
+
         </div>
 
       </div>
+
     </div>
   );
 }

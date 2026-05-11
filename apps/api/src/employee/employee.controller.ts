@@ -12,7 +12,12 @@ import {
 } from "@nestjs/common";
 
 import { EmployeeService } from "./employee.service";
+
 import { JwtAuthGuard } from "../auth/jwt.guard";
+
+import { Roles } from "../auth/roles.decorator";
+
+import { RolesGuard } from "../auth/roles.guard";
 
 import {
   ApiBearerAuth,
@@ -21,7 +26,7 @@ import {
 
 import { CreateEmployeeDto } from "./dto/create-employee.dto";
 
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, RolesGuard)
 @ApiTags("Employees")
 @ApiBearerAuth()
 @Controller("employee")
@@ -31,7 +36,7 @@ export class EmployeeController {
     private service: EmployeeService
   ) {}
 
-  // GET ALL
+  // GET ALL EMPLOYEES
   @Get()
   getAll(
     @Req() req: any,
@@ -51,8 +56,9 @@ export class EmployeeController {
     );
   }
 
-  // CREATE
+  // CREATE EMPLOYEE
   @Post()
+  @Roles("ADMIN")
   create(
     @Body() body: CreateEmployeeDto,
     @Req() req: any
@@ -64,8 +70,9 @@ export class EmployeeController {
     );
   }
 
-  // DELETE
+  // DELETE EMPLOYEE
   @Delete(":id")
+  @Roles("ADMIN")
   delete(
     @Param("id") id: string,
     @Req() req: any
@@ -77,8 +84,9 @@ export class EmployeeController {
     );
   }
 
-  // UPDATE
+  // UPDATE EMPLOYEE
   @Put(":id")
+  @Roles("ADMIN")
   update(
     @Param("id") id: string,
 

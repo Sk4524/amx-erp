@@ -1,100 +1,161 @@
-import { Injectable, UnauthorizedException, BadRequestException } from "@nestjs/common";
+import {
+  Injectable,
+  UnauthorizedException,
+  BadRequestException,
+} from "@nestjs/common";
+
 import { PrismaService } from "../prisma/prisma.service";
+
 import { JwtService } from "@nestjs/jwt";
+
 import * as bcrypt from "bcrypt";
 
 @Injectable()
 export class AuthService {
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService
   ) {}
 
-  // ✅ REGISTER USER + TENANT
+  // REGISTER
   async register(data: any) {
+
     try {
-      // 🔐 VALIDATION
-      if (!data?.email || !data?.password || !data?.tenantName) {
-        throw new BadRequestException("All fields are required");
+
+      // VALIDATION
+      if (
+        !data?.email ||
+        !data?.password ||
+        !data?.tenantName
+      ) {
+        throw new BadRequestException(
+          "All fields are required"
+        );
       }
 
-      // 🔍 CHECK IF USER EXISTS
-      const existingUser = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      // CHECK EXISTING USER
+      const existingUser =
+        await this.prisma.user.findUnique({
+          where: {
+            email: data.email,
+          },
+        });
 
       if (existingUser) {
-        throw new BadRequestException("User already exists with this email");
+        throw new BadRequestException(
+          "User already exists"
+        );
       }
 
-      // 🔐 HASH PASSWORD
-      const hashedPassword = await bcrypt.hash(data.password, 10);
+      // HASH PASSWORD
+      const hashedPassword =
+        await bcrypt.hash(data.password, 10);
 
-      // 🏢 CREATE TENANT
-      const tenant = await this.prisma.tenant.create({
-        data: { name: data.tenantName },
-      });
+      // CREATE TENANT
+      const tenant =
+        await this.prisma.tenant.create({
+          data: {
+            name: data.tenantName,
+          },
+        });
 
-      // 👤 CREATE USER
-      const user = await this.prisma.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          role: "ADMIN",
-          tenantId: tenant.id,
-        },
-      });
+      // CREATE USER
+      const user =
+        await this.prisma.user.create({
+          data: {
+            email: data.email,
+            password: hashedPassword,
+
+            // IMPORTANT
+            role: data.role || "USER",
+
+            tenantId: tenant.id,
+          },
+        });
 
       return {
         message: "User registered successfully",
+
         user: {
           id: user.id,
           email: user.email,
           role: user.role,
         },
+
         tenant,
       };
+
     } catch (error) {
+
       throw error;
     }
   }
 
-  // ✅ LOGIN USER
+  // LOGIN
   async login(data: any) {
+
     try {
-      // 🔐 VALIDATION
-      if (!data?.email || !data?.password) {
-        throw new BadRequestException("Email and password are required");
+
+      // VALIDATION
+      if (
+        !data?.email ||
+        !data?.password
+      ) {
+        throw new BadRequestException(
+          "Email and password are required"
+        );
       }
 
-      // 🔍 FIND USER
-      const user = await this.prisma.user.findUnique({
-        where: { email: data.email },
-      });
+      // FIND USER
+      const user =
+        await this.prisma.user.findUnique({
+          where: {
+            email: data.email,
+          },
+        });
 
       if (!user) {
-        throw new UnauthorizedException("User not found");
+        throw new UnauthorizedException(
+          "User not found"
+        );
       }
 
-      // 🔐 CHECK PASSWORD
-      const isMatch = await bcrypt.compare(data.password, user.password);
+      // PASSWORD CHECK
+      const isMatch =
+        await bcrypt.compare(
+          data.password,
+          user.password
+        );
 
       if (!isMatch) {
-        throw new UnauthorizedException("Invalid password");
+        throw new UnauthorizedException(
+          "Invalid password"
+        );
       }
 
-      // 🔑 GENERATE TOKEN
-      const token = this.jwtService.sign({
-        userId: user.id,
-        role: user.role,
-        tenantId: user.tenantId,
-      });
+      // TOKEN
+      const token =
+        this.jwtService.sign({
+          userId: user.id,
+          role: user.role,
+          tenantId: user.tenantId,
+        });
 
+      // IMPORTANT RESPONSE
       return {
-        message: "Login successful",
+
         access_token: token,
+
+        user: {
+          id: user.id,
+          email: user.email,
+          role: user.role,
+        },
       };
+
     } catch (error) {
+
       throw error;
     }
   }

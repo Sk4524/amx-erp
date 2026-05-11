@@ -42,12 +42,15 @@ async function main() {
     }
   });
 
-  await prisma.inventoryItem.create({
-    data: {
-      name: "Laptop",
-      quantity: 10,
-      price: 50000,
-      tenantId: tenant.id
+  await prisma.inventory.create({
+  data: {
+    productName: "Laptop",
+    sku: "LP1001",
+    quantity: 10,
+    price: 65000,
+    category: "Electronics",
+    tenantId: tenant.id,
+ 
     }
   });
 

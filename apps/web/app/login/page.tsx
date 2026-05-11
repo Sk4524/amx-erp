@@ -1,25 +1,28 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
 import api from "../../lib/api";
+
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 
 export default function LoginPage() {
 
   const router = useRouter();
-  useEffect(() => {
-
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    router.push("/");
-  }
-
-}, []);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  // AUTO REDIRECT IF ALREADY LOGGED IN
+  useEffect(() => {
+
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      router.push("/");
+    }
+
+  }, []);
 
   const handleLogin = async () => {
 
@@ -29,7 +32,7 @@ export default function LoginPage() {
         "/auth/login",
         {
           email,
-          password
+          password,
         }
       );
 
@@ -39,6 +42,18 @@ export default function LoginPage() {
       localStorage.setItem(
         "token",
         res.data.data.access_token
+      );
+
+      // SAVE ROLE
+      localStorage.setItem(
+        "role",
+        res.data.data.user.role
+      );
+
+      // SAVE USER
+      localStorage.setItem(
+        "user",
+        JSON.stringify(res.data.data.user)
       );
 
       alert("Login Success ✅");
@@ -58,6 +73,7 @@ export default function LoginPage() {
   };
 
   return (
+
     <div className="h-screen flex items-center justify-center bg-gradient-to-r from-blue-600 to-purple-700">
 
       <div className="bg-white p-10 rounded-2xl shadow-2xl w-[380px]">
