@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FinanceController } from './finance.controller';
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+
+@ApiTags("Finance")
+@ApiBearerAuth()
 
 describe('FinanceController', () => {
   let controller: FinanceController;

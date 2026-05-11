@@ -1,161 +1,203 @@
 "use client";
 
 import Sidebar from "../../components/Sidebar";
+
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../../lib/api";
+import AuthGuard from "../../components/AuthGuard";
 
 export default function EmployeesPage() {
 
-  const [employees, setEmployees] = useState([]);
+  const [employees, setEmployees] = useState<any[]>([]);
 
   const [name, setName] = useState("");
   const [position, setPosition] = useState("");
   const [salary, setSalary] = useState("");
 
-  // 🔥 NEW STATE FOR EDIT
   const [editingId, setEditingId] = useState("");
 
-  const token =
-    typeof window !== "undefined"
-      ? localStorage.getItem("token")
-      : "";
+  const [search, setSearch] = useState("");
 
   // FETCH EMPLOYEES
-  const fetchEmployees = () => {
-    axios
-      .get("http://localhost:3000/employee", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      })
-      .then((res) => setEmployees(res.data))
-      .catch((err) => console.log(err));
+  const fetchEmployees = async () => {
+
+    try {
+
+      const token = localStorage.getItem("token");
+
+      const res = await api.get(
+        `http://localhost:3002/employee?search=${search}`,
+        
+      );
+
+      setEmployees(res.data.data || []);
+
+    } catch (err) {
+
+      console.log(err);
+
+      setEmployees([]);
+    }
   };
 
+  // INITIAL LOAD
   useEffect(() => {
-    if (token) {
-      fetchEmployees();
-    }
-  }, []);
+
+    fetchEmployees();
+
+  }, [search]);
 
   // ADD EMPLOYEE
   const addEmployee = async () => {
+
     try {
 
-      await axios.post(
-        "http://localhost:3000/employee",
+      const token = localStorage.getItem("token");
+
+      await api.post(
+        "http://localhost:3002/employee",
         {
           name,
           position,
           salary: Number(salary),
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        
       );
 
-      // CLEAR FORM
       setName("");
       setPosition("");
       setSalary("");
 
       fetchEmployees();
 
-    } catch (err) {
+      alert("Employee Added ✅");
+
+    } catch (err: any) {
+
       console.log(err);
-      alert("Add Employee Failed ❌");
+
+      alert(
+        JSON.stringify(
+          err?.response?.data || "Add Employee Failed"
+        )
+      );
     }
   };
 
   // DELETE EMPLOYEE
   const deleteEmployee = async (id: string) => {
+
     try {
 
-      await axios.delete(`http://localhost:3000/employee/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
+      const token = localStorage.getItem("token");
+
+      await api.delete(
+        `http://localhost:3002/employee/${id}`,
+        
+      );
 
       fetchEmployees();
 
     } catch (err) {
+
       console.log(err);
-      alert("Delete Failed ❌");
     }
   };
 
-  // 🔥 UPDATE EMPLOYEE
+  // UPDATE EMPLOYEE
   const updateEmployee = async () => {
+
     try {
 
-      await axios.put(
-        `http://localhost:3000/employee/${editingId}`,
+      const token = localStorage.getItem("token");
+
+      await api.put(
+        `http://localhost:3002/employee/${editingId}`,
         {
           name,
           position,
           salary: Number(salary),
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        
       );
 
-      // RESET FORM
       setEditingId("");
+
       setName("");
       setPosition("");
       setSalary("");
 
       fetchEmployees();
 
-    } catch (err) {
+      alert("Employee Updated ✅");
+
+    } catch (err: any) {
+
       console.log(err);
-      alert("Update Failed ❌");
+
+      alert(
+        JSON.stringify(
+          err?.response?.data || "Update Failed"
+        )
+      );
     }
   };
 
   return (
+    <AuthGuard>
     <div className="flex">
 
       <Sidebar />
 
       <div className="p-10 w-full ml-72 bg-gray-100 min-h-screen text-black">
 
-        <h1 className="text-3xl font-bold mb-6">
-          Employees
-        </h1>
+        {/* TOP */}
+        <div className="flex items-center justify-between mb-6">
+
+          <h1 className="text-3xl font-bold">
+            Employees
+          </h1>
+
+          <input
+            placeholder="Search employee..."
+            className="border p-3 rounded-xl w-[300px]"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+
+        </div>
 
         {/* FORM */}
-        <div className="bg-white p-5 rounded-xl shadow mb-6">
+        <div className="bg-white p-6 rounded-2xl shadow mb-8">
 
-          <h2 className="text-lg font-semibold mb-4">
-            {editingId ? "Edit Employee" : "Add Employee"}
+          <h2 className="text-xl font-semibold mb-5">
+
+            {editingId
+              ? "Update Employee"
+              : "Add Employee"}
+
           </h2>
 
           <div className="grid grid-cols-3 gap-4">
 
             <input
-              placeholder="Name"
-              className="p-2 border rounded"
+              placeholder="Employee Name"
+              className="p-3 border rounded-xl"
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
 
             <input
               placeholder="Position"
-              className="p-2 border rounded"
+              className="p-3 border rounded-xl"
               value={position}
               onChange={(e) => setPosition(e.target.value)}
             />
 
             <input
               placeholder="Salary"
-              className="p-2 border rounded"
+              type="number"
+              className="p-3 border rounded-xl"
               value={salary}
               onChange={(e) => setSalary(e.target.value)}
             />
@@ -163,55 +205,88 @@ export default function EmployeesPage() {
           </div>
 
           <button
-            onClick={editingId ? updateEmployee : addEmployee}
-            className="mt-4 bg-blue-600 text-white px-5 py-2 rounded hover:bg-blue-700 transition"
+            onClick={
+              editingId
+                ? updateEmployee
+                : addEmployee
+            }
+            className="mt-5 bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 transition"
           >
-            {editingId ? "Update Employee" : "Add Employee"}
+
+            {editingId
+              ? "Update Employee"
+              : "Add Employee"}
+
           </button>
 
         </div>
 
-        {/* EMPLOYEE LIST */}
-        <div className="bg-white p-5 rounded-xl shadow">
+        {/* TABLE */}
+        <div className="bg-white p-6 rounded-2xl shadow">
 
-          <h2 className="text-lg font-semibold mb-4">
-            Employee List
+          <h2 className="text-xl font-semibold mb-5">
+            Employees List
           </h2>
 
+          {/* HEADER */}
+          <div className="grid grid-cols-4 border-b pb-3 font-semibold text-gray-500">
+
+            <div>Name</div>
+            <div>Position</div>
+            <div>Salary</div>
+            <div>Actions</div>
+
+          </div>
+
+          {/* BODY */}
           {employees.length === 0 ? (
-            <p className="text-gray-500">
+
+            <p className="py-6 text-gray-500">
               No employees found
             </p>
+
           ) : (
+
             employees.map((emp: any) => (
+
               <div
                 key={emp.id}
-                className="flex justify-between items-center border-b py-3"
+                className="grid grid-cols-4 py-4 border-b items-center hover:bg-gray-50 px-2 rounded-lg"
               >
 
+                <div className="font-medium">
+                  {emp.name}
+                </div>
+
                 <div>
-                  <b>{emp.name}</b> - {emp.position} (₹{emp.salary})
+                  {emp.position}
+                </div>
+
+                <div className="text-green-600 font-semibold">
+                  ₹{emp.salary}
                 </div>
 
                 <div className="flex gap-4">
 
-                  {/* EDIT BUTTON */}
                   <button
                     onClick={() => {
+
                       setEditingId(emp.id);
+
                       setName(emp.name);
+
                       setPosition(emp.position);
+
                       setSalary(emp.salary.toString());
                     }}
-                    className="text-blue-500 hover:text-blue-700"
+                    className="text-blue-600"
                   >
                     Edit
                   </button>
 
-                  {/* DELETE BUTTON */}
                   <button
                     onClick={() => deleteEmployee(emp.id)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-500"
                   >
                     Delete
                   </button>
@@ -227,5 +302,6 @@ export default function EmployeesPage() {
       </div>
 
     </div>
+    </AuthGuard>
   );
 }

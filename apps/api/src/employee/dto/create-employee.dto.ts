@@ -6,6 +6,8 @@ import {
 
 import { ApiProperty } from "@nestjs/swagger";
 
+import { Type } from "class-transformer";
+
 export class CreateEmployeeDto {
 
   @ApiProperty({
@@ -25,6 +27,7 @@ export class CreateEmployeeDto {
   @ApiProperty({
     example: 55000
   })
+  @Type(() => Number)
   @IsNumber()
   salary: number;
 }

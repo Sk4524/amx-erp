@@ -1,6 +1,10 @@
 import { Controller, Get, Req, UseGuards } from "@nestjs/common";
 import { InventoryService } from "./inventory.service";
 import { JwtAuthGuard } from "../auth/jwt.guard";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
+
+@ApiTags("Inventory")
+@ApiBearerAuth()
 
 @UseGuards(JwtAuthGuard)
 @Controller("inventory")
